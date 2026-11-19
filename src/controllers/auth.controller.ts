@@ -103,7 +103,12 @@ export async function login(req: Request, res: Response) {
     );
   } catch (error: any) {
     console.error('[Auth Controller] Login error:', error);
-    return errorResponse(res, 'An error occurred during authentication.', 500);
+    const errorMessage = error?.message || 'Unknown database or server error';
+    return res.status(500).json({
+      status: 'error',
+      message: 'An error occurred during authentication.',
+      details: errorMessage,
+    });
   }
 }
 

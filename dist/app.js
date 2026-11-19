@@ -9,6 +9,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const index_js_1 = require("./config/index.js");
+const prisma_js_1 = require("./config/prisma.js");
 const index_js_2 = __importDefault(require("./routes/index.js"));
 const app = (0, express_1.default)();
 // Security and utility middleware
@@ -75,13 +76,30 @@ if (index_js_1.config.nodeEnv !== 'test') {
     app.use((0, morgan_1.default)('dev'));
 }
 // Health check endpoint (Available at both /api/v1/health and /health)
-const healthHandler = (_req, res) => {
-    res.status(200).json({
-        status: 'success',
-        message: 'Bio Finger API Service is healthy and operational.',
+const healthHandler = async (_req, res) => {
+    let dbStatus = 'DISCONNECTED';
+    let dbError = null;
+    try {
+        await prisma_js_1.prisma.$queryRaw `SELECT 1`;
+        dbStatus = 'CONNECTED';
+    }
+    catch (err) {
+        dbStatus = 'CONNECTION_FAILED';
+        dbError = err?.message || 'Database unreachable';
+    }
+    const statusCode = dbStatus === 'CONNECTED' ? 200 : 503;
+    res.status(statusCode).json({
+        status: dbStatus === 'CONNECTED' ? 'success' : 'degraded',
+        message: dbStatus === 'CONNECTED'
+            ? 'Bio Finger API Service is healthy and operational.'
+            : 'API Service running, but Microsoft SQL Server is unreachable.',
         timestamp: new Date().toISOString(),
         environment: index_js_1.config.nodeEnv,
-        database: 'Microsoft SQL Server 2025 (Prisma ORM)',
+        database: {
+            provider: 'Microsoft SQL Server (Prisma ORM)',
+            status: dbStatus,
+            ...(dbError ? { error: dbError } : {}),
+        },
         version: '1.0.0',
     });
 };
