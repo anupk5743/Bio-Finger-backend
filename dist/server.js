@@ -19,3 +19,4 @@ process.on('SIGTERM', () => {
         console.log('HTTP server closed');
     });
 });
+exports.default = app_js_1.default;
