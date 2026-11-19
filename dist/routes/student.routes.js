@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const student_controller_js_1 = require("../controllers/student.controller.js");
+const auth_js_1 = require("../middleware/auth.js");
+const rbac_js_1 = require("../middleware/rbac.js");
+const validate_js_1 = require("../middleware/validate.js");
+const student_validators_js_1 = require("../validators/student.validators.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.authenticateToken);
+router.get('/', student_controller_js_1.getStudents);
+router.get('/:id', student_controller_js_1.getStudentById);
+router.post('/', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN', 'OPERATOR'), (0, validate_js_1.validateRequest)(student_validators_js_1.createStudentSchema), student_controller_js_1.createStudent);
+router.put('/:id', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN', 'OPERATOR'), (0, validate_js_1.validateRequest)(student_validators_js_1.updateStudentSchema), student_controller_js_1.updateStudent);
+router.patch('/:id/status', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN', 'OPERATOR'), (0, validate_js_1.validateRequest)(student_validators_js_1.updateStudentStatusSchema), student_controller_js_1.updateStudentStatus);
+router.delete('/:id', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), student_controller_js_1.deleteStudent);
+exports.default = router;

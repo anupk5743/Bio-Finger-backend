@@ -1,0 +1,24 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_routes_js_1 = __importDefault(require("./auth.routes.js"));
+const user_routes_js_1 = __importDefault(require("./user.routes.js"));
+const batch_routes_js_1 = __importDefault(require("./batch.routes.js"));
+const student_routes_js_1 = __importDefault(require("./student.routes.js"));
+const fingerprint_routes_js_1 = __importDefault(require("./fingerprint.routes.js"));
+const dashboard_routes_js_1 = __importDefault(require("./dashboard.routes.js"));
+const profile_routes_js_1 = __importDefault(require("./profile.routes.js"));
+const export_routes_js_1 = __importDefault(require("./export.routes.js"));
+const router = (0, express_1.Router)();
+router.use('/auth', auth_routes_js_1.default);
+router.use('/users', user_routes_js_1.default);
+router.use('/batches', batch_routes_js_1.default);
+router.use('/students', student_routes_js_1.default);
+router.use('/fingerprints', fingerprint_routes_js_1.default);
+router.use('/dashboard', dashboard_routes_js_1.default);
+router.use('/profile', profile_routes_js_1.default);
+router.use('/exports', export_routes_js_1.default);
+exports.default = router;

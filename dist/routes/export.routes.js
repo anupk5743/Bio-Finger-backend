@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const export_controller_js_1 = require("../controllers/export.controller.js");
+const auth_js_1 = require("../middleware/auth.js");
+const rbac_js_1 = require("../middleware/rbac.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.authenticateToken);
+router.get('/students', export_controller_js_1.exportStudents);
+router.get('/batches', export_controller_js_1.exportBatches);
+router.get('/users', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), export_controller_js_1.exportUsers);
+exports.default = router;

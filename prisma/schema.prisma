@@ -1,0 +1,143 @@
+// Prisma schema file for Bio Finger Biometric Management System
+// Tailored and validated for Microsoft SQL Server
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.NVarChar(50) // SUPER_ADMIN, ADMIN, OPERATOR, VIEWER
+  description String?  @db.NVarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  @@map("Roles")
+}
+
+model User {
+  id              String         @id @default(uuid())
+  firstName       String         @db.NVarChar(100)
+  lastName        String         @db.NVarChar(100)
+  email           String         @unique @db.NVarChar(255)
+  mobileNumber    String         @unique @db.NVarChar(20)
+  passwordHash    String         @db.NVarChar(255)
+  roleId          String
+  role            Role           @relation(fields: [roleId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  status          String         @default("ACTIVE") @db.NVarChar(20) // ACTIVE, INACTIVE
+  validUntil      DateTime?
+  isDeleted       Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  createdBatches  Batch[]        @relation("UserCreatedBatches")
+  createdStudents Student[]      @relation("UserCreatedStudents")
+  auditLogs       AuditLog[]     @relation("UserAuditLogs")
+  refreshTokens   RefreshToken[]
+
+  @@index([roleId])
+  @@index([email])
+  @@index([mobileNumber])
+  @@index([isDeleted])
+  @@map("Users")
+}
+
+model Batch {
+  id          String    @id @default(uuid())
+  name        String    @unique @db.NVarChar(100)
+  status      String    @default("ACTIVE") @db.NVarChar(20) // ACTIVE, INACTIVE
+  isDeleted   Boolean   @default(false)
+  createdById String?
+  createdBy   User?     @relation("UserCreatedBatches", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  students    Student[]
+
+  @@index([status])
+  @@index([isDeleted])
+  @@index([createdById])
+  @@map("Batches")
+}
+
+model Student {
+  id           String        @id @default(uuid())
+  firstName    String        @db.NVarChar(100)
+  lastName     String        @db.NVarChar(100)
+  mobileNumber String        @unique @db.NVarChar(20)
+  email        String?       @db.NVarChar(255)
+  status       String        @default("ACTIVE") @db.NVarChar(20) // ACTIVE, INACTIVE
+  isDeleted    Boolean       @default(false)
+  
+  batchId      String
+  batch        Batch         @relation(fields: [batchId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  
+  createdById  String?
+  createdBy    User?         @relation("UserCreatedStudents", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: SetNull)
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  fingerprints Fingerprint[]
+
+  @@index([batchId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([createdById])
+  @@map("Students")
+}
+
+model Fingerprint {
+  id            String   @id @default(uuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  fingerIndex   String   @db.NVarChar(20) // FINGER_1, FINGER_2, FINGER_3
+  templateHash  String   @db.NVarChar(255)
+  encryptedData String   @db.NVarChar(Max) // Encrypted biometric template reference
+  qualityScore  Int      @default(0)
+  deviceModel   String   @default("MFS100") @db.NVarChar(50)
+  isEnrolled    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, fingerIndex])
+  @@index([studentId])
+  @@map("Fingerprints")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actor     User?    @relation("UserAuditLogs", fields: [actorId], references: [id], onUpdate: NoAction, onDelete: SetNull)
+  action    String   @db.NVarChar(100)
+  entity    String   @db.NVarChar(100)
+  entityId  String?  @db.NVarChar(100)
+  details   String?  @db.NVarChar(Max)
+  ipAddress String?  @db.NVarChar(45)
+  timestamp DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entity])
+  @@index([timestamp])
+  @@map("AuditLogs")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique @db.NVarChar(255)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("RefreshTokens")
+}

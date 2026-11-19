@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const fingerprint_controller_js_1 = require("../controllers/fingerprint.controller.js");
+const auth_js_1 = require("../middleware/auth.js");
+const rbac_js_1 = require("../middleware/rbac.js");
+const validate_js_1 = require("../middleware/validate.js");
+const fingerprint_validators_js_1 = require("../validators/fingerprint.validators.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.authenticateToken);
+router.get('/device/status', fingerprint_controller_js_1.getDeviceStatus);
+router.get('/student/:studentId', fingerprint_controller_js_1.getStudentFingerprints);
+router.post('/enrollment', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN', 'OPERATOR'), (0, validate_js_1.validateRequest)(fingerprint_validators_js_1.enrollFingerprintSchema), fingerprint_controller_js_1.enrollFingerprint);
+router.delete('/:id', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), fingerprint_controller_js_1.deleteFingerprint);
+exports.default = router;

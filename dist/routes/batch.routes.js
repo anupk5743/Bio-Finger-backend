@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const batch_controller_js_1 = require("../controllers/batch.controller.js");
+const auth_js_1 = require("../middleware/auth.js");
+const rbac_js_1 = require("../middleware/rbac.js");
+const validate_js_1 = require("../middleware/validate.js");
+const batch_validators_js_1 = require("../validators/batch.validators.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.authenticateToken);
+router.get('/', batch_controller_js_1.getBatches);
+router.get('/:id', batch_controller_js_1.getBatchById);
+router.post('/', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), (0, validate_js_1.validateRequest)(batch_validators_js_1.createBatchSchema), batch_controller_js_1.createBatch);
+router.put('/:id', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), (0, validate_js_1.validateRequest)(batch_validators_js_1.updateBatchSchema), batch_controller_js_1.updateBatch);
+router.patch('/:id/status', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), (0, validate_js_1.validateRequest)(batch_validators_js_1.updateBatchStatusSchema), batch_controller_js_1.updateBatchStatus);
+router.delete('/:id', (0, rbac_js_1.requireRole)('SUPER_ADMIN', 'ADMIN'), batch_controller_js_1.deleteBatch);
+exports.default = router;

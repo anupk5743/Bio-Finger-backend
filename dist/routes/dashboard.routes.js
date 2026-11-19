@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const dashboard_controller_js_1 = require("../controllers/dashboard.controller.js");
+const auth_js_1 = require("../middleware/auth.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.authenticateToken);
+router.get('/summary', dashboard_controller_js_1.getDashboardSummary);
+router.get('/student-statistics', dashboard_controller_js_1.getStudentStatistics);
+router.get('/batch-statistics', dashboard_controller_js_1.getBatchStatistics);
+router.get('/recent-activities', dashboard_controller_js_1.getRecentActivities);
+exports.default = router;
